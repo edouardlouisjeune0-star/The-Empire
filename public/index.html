@@ -2,25 +2,148 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>The Empire</title>
+  <title>My Proxy Hub</title>
   <script src="/baremux/index.js"></script>
   <script src="/scram/scramjet.all.js"></script>
   <style>
-    body { margin: 0; background: #0f0f13; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
-    #bar { display: flex; padding: 10px; background: #18181f; gap: 8px; }
-    input { flex: 1; padding: 10px; border-radius: 6px; border: none; background: #262630; color: white; }
-    button { padding: 10px 18px; border-radius: 6px; border: none; background: #5865f2; color: white; cursor: pointer; }
-    iframe { flex: 1; border: none; width: 100%; background: white; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+    
+    body {
+      background: linear-gradient(rgba(15, 15, 20, 0.75), rgba(15, 15, 20, 0.85)),
+                  url('/assets/bg.jpg') center/cover no-repeat fixed;
+      background-color: #0f0f13;
+      color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #home {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand img { width: 52px; height: 52px; border-radius: 12px; object-fit: cover; }
+    .brand h1 { font-size: 2.5rem; letter-spacing: 1px; }
+
+    #search-form {
+      display: flex;
+      width: 100%;
+      max-width: 580px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      padding: 6px 8px 6px 20px;
+    }
+    #url-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 1rem;
+      outline: none;
+    }
+    #search-form button {
+      background: #5865f2;
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .shortcuts {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      width: 95px;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .card:hover { transform: translateY(-4px); background: rgba(255, 255, 255, 0.14); }
+    .card img { width: 38px; height: 38px; border-radius: 8px; object-fit: contain; }
+    .card span { font-size: 0.85rem; color: #ddd; }
+
+    .cloak-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ccc;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .cloak-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+
+    #browser-view { display: none; flex-direction: column; height: 100vh; }
+    #top-nav { display: flex; padding: 8px 12px; background: #16161d; gap: 10px; align-items: center; }
+    #top-nav button { background: #262630; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; }
+    #frame-container { flex: 1; display: flex; width: 100%; background: white; }
   </style>
 </head>
 <body>
-  <form id="bar">
-    <input id="url-input" type="text" placeholder="Search DuckDuckGo or enter a URL..." autocomplete="off" />
-    <button type="submit">Go</button>
-  </form>
-  <iframe id="proxy-frame"></iframe>
 
-    <script>
+  <!-- HOME SCREEN -->
+  <div id="home">
+    <div class="brand">
+      <img src="/assets/logo.png" alt="" onerror="this.style.display='none'" />
+      <h1>MY PROXY HUB</h1>
+    </div>
+
+    <form id="search-form">
+      <input id="url-input" type="text" placeholder="Search DuckDuckGo or type a URL..." autocomplete="off" />
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="shortcuts">
+      <div class="card" onclick="launchUrl('https://youtube.com')">
+        <img src="https://google.com" alt="YouTube" />
+        <span>YouTube</span>
+      </div>
+      <div class="card" onclick="launchUrl('https://discord.com')">
+        <img src="https://google.com" alt="Discord" />
+        <span>Discord</span>
+      </div>
+      <div class="card" onclick="launchUrl('https://github.io')">
+        <img src="https://google.com" alt="Games" />
+        <span>Games</span>
+      </div>
+    </div>
+
+    <button class="cloak-btn" onclick="openCloaked()">Open in about:blank</button>
+  </div>
+
+  <!-- ACTIVE PROXY FRAME -->
+  <div id="browser-view">
+    <div id="top-nav">
+      <button onclick="goHome()">Home</button>
+      <button onclick="if(scramjetFrame) scramjetFrame.reload()">Reload</button>
+    </div>
+    <div id="frame-container"></div>
+  </div>
+
+  <script>
     const { ScramjetController } = $scramjetLoadController();
     const scramjet = new ScramjetController({
       files: {
@@ -30,6 +153,8 @@
       },
     });
 
+    let scramjetFrame = null;
+
     const proxyReady = (async () => {
       await navigator.serviceWorker.register("/sw.js", { scope: "/" });
       await navigator.serviceWorker.ready;
@@ -38,6 +163,10 @@
       const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
       const wispUrl = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/wisp/";
       await connection.setTransport("/libcurl/index.mjs", [{ wisp: wispUrl }]);
+
+      scramjetFrame = scramjet.createFrame();
+      scramjetFrame.frame.style.cssText = "flex: 1; border: none; width: 100%; height: 100%;";
+      document.getElementById("frame-container").appendChild(scramjetFrame.frame);
     })();
 
     async function launchUrl(input) {
@@ -52,11 +181,11 @@
 
       document.getElementById("home").style.display = "none";
       document.getElementById("browser-view").style.display = "flex";
-      document.getElementById("proxy-frame").src = scramjet.encodeUrl(url);
+      scramjetFrame.go(url);
     }
 
     function goHome() {
-      document.getElementById("proxy-frame").src = "about:blank";
+      if (scramjetFrame) scramjetFrame.go("about:blank");
       document.getElementById("browser-view").style.display = "none";
       document.getElementById("home").style.display = "flex";
     }
@@ -75,6 +204,6 @@
       if (val) launchUrl(val);
     });
   </script>
-
 </body>
 </html>
+
