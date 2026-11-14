@@ -4,10 +4,11 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { server as wisp } from "@mercuryworkshop/wisp-js/server";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
-import { epoxyPath } from "@mercuryworkshop/epoxy-transport";
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const epoxyPath = join(__dirname, "node_modules/@mercuryworkshop/epoxy-transport/dist");
+
 const app = express();
 const server = createServer();
 
