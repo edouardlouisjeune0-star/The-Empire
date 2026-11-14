@@ -4,11 +4,10 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { server as wisp } from "@mercuryworkshop/wisp-js/server";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
+import { epoxyPath } from "@mercuryworkshop/epoxy-transport";
 import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const libcurlPath = join(__dirname, "node_modules/@mercuryworkshop/libcurl-transport/dist");
-
 const app = express();
 const server = createServer();
 
@@ -21,12 +20,7 @@ app.use((req, res, next) => {
 app.use(express.static(join(__dirname, "public")));
 app.use("/scram/", express.static(scramjetPath));
 app.use("/baremux/", express.static(baremuxPath));
-app.use("/libcurl/", express.static(libcurlPath));
-
-// Fallback root routes so hashed .wasm chunks never 404
-app.use(express.static(scramjetPath));
-app.use(express.static(libcurlPath));
-app.use(express.static(baremuxPath));
+app.use("/epoxy/", express.static(epoxyPath));
 
 server.on("request", (req, res) => {
   app.handle(req, res);
