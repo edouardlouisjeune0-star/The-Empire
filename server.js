@@ -12,10 +12,21 @@ const libcurlPath = join(__dirname, "node_modules/@mercuryworkshop/libcurl-trans
 const app = express();
 const server = createServer();
 
+app.use((req, res, next) => {
+  res.setHeader("Service-Worker-Allowed", "/");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  next();
+});
+
 app.use(express.static(join(__dirname, "public")));
 app.use("/scram/", express.static(scramjetPath));
 app.use("/baremux/", express.static(baremuxPath));
 app.use("/libcurl/", express.static(libcurlPath));
+
+// Fallback root routes so hashed .wasm chunks never 404
+app.use(express.static(scramjetPath));
+app.use(express.static(libcurlPath));
+app.use(express.static(baremuxPath));
 
 server.on("request", (req, res) => {
   app.handle(req, res);
