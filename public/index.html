@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>The Empire</title>
+  <script src="/baremux/index.js"></script>
+  <script src="/scram/scramjet.all.js"></script>
+  <style>
+    body { margin: 0; background: #0f0f13; color: #fff; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+    #bar { display: flex; padding: 10px; background: #18181f; gap: 8px; }
+    input { flex: 1; padding: 10px; border-radius: 6px; border: none; background: #262630; color: white; }
+    button { padding: 10px 18px; border-radius: 6px; border: none; background: #5865f2; color: white; cursor: pointer; }
+    iframe { flex: 1; border: none; width: 100%; background: white; }
+  </style>
+</head>
+<body>
+  <form id="bar">
+    <input id="url-input" type="text" placeholder="Search DuckDuckGo or enter a URL..." autocomplete="off" />
+    <button type="submit">Go</button>
+  </form>
+  <iframe id="proxy-frame"></iframe>
+
+  <script>
+    const { ScramjetController } = $scramjetLoadController();
+    const scramjet = new ScramjetController({
+      files: {
+        wasm: "/scram/scramjet.wasm.wasm",
+        all: "/scram/scramjet.all.js",
+        sync: "/scram/scramjet.sync.js",
+      },
+    });
+
+    async function initProxy() {
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      await scramjet.init();
+
+      const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
+      const wispUrl = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/wisp/";
+      await connection.setTransport("/libcurl/index.mjs", [{ wisp: wispUrl }]);
+    }
+
+    initProxy();
+
+    document.getElementById("bar").addEventListener("submit", (e) => {
+      e.preventDefault();
+      let query = document.getElementById("url-input").value.trim();
+      if (!query) return;
+
+      if (!query.startsWith("http://") && !query.startsWith("https://")) {
+        query = query.includes(".") && !query.includes(" ")
+          ? "https://" + query
+          : "https://duckduckgo.com" + encodeURIComponent(query);
+      }
+
+      document.getElementById("proxy-frame").src = scramjet.encodeUrl(query);
+    });
+  </script>
+</body>
+</html>
