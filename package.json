@@ -6,10 +6,10 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "@mercuryworkshop/bare-mux": "^2.1.7",
-    "@mercuryworkshop/epoxy-transport": "^2.1.27",
-    "@mercuryworkshop/scramjet": "^2.0.0-alpha",
-    "@mercuryworkshop/wisp-js": "^1.0.1",
-    "express": "^4.21.2"
+    "@mercuryworkshop/bare-mux": "*",
+    "@mercuryworkshop/epoxy-transport": "*",
+    "@mercuryworkshop/scramjet": "*",
+    "@mercuryworkshop/wisp-js": "*",
+    "express": "*"
   }
 }
