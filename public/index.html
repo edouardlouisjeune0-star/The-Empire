@@ -162,7 +162,7 @@
 
       const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
       const wispUrl = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/wisp/";
-      await connection.setTransport("/libcurl/index.mjs", [{ wisp: wispUrl }]);
+      await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
 
       scramjetFrame = scramjet.createFrame();
       scramjetFrame.frame.style.cssText = "flex: 1; border: none; width: 100%; height: 100%;";
